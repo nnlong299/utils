@@ -16,6 +16,7 @@ autom4te.cache
 *autoscan-*.log
 *aclocal.m4
 *compile
+*main
 *config.cache
 *config.guess
 *config.h.in
