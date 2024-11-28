@@ -1,9 +1,12 @@
-#include <iostream>
-#include <vector>
-#include <utility>
 #include <algorithm>
-#include <unordered_map>
 #include <cstdint>
+#include <iostream>
+#include <stack>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+#include <vector>
 
 // basis
 // 
@@ -32,13 +35,17 @@ const static std::vector<std::pair<int,int>> edgeList
     {4, 5},
 };
 
-const static std::unordered_map<int, std::vector<int>> adjacencyList
+auto buildAdjacencyList() -> std::unordered_map<int, std::vector<int>>
 {
-    {1, {2, 3, 4}   },
-    {2, {3, 4, 5}   },
-    {3, {4, 5}      },
-    {4, {5}         },
-};
+    std::unordered_map<int, std::vector<int>> adjList;
+    for (const auto& edge : edgeList)
+    {
+        adjList[edge.first].push_back(edge.second);
+        adjList[edge.second].push_back(edge.first);  // Since it's an undirected graph
+    }
+
+    return adjList;
+}
 
 void undirected_graph_to_adjacency_matrix()
 {
@@ -71,80 +78,80 @@ void undirected_graph_to_adjacency_matrix()
 
 }
 
-// depth first search
-void dfs(int u)
+// Time complexity: O(E + V)
+//  for all vertices (on stack) and edges  
+//
+// Space O(V) to store visited node
+void dfs()
 {
-    static auto inputData = adjacencyList;
-    static std::vector<bool> visited (maxSize, false);
-    visited.at(u - 1) = true;
-    for (const auto [v, es]: inputData)
+    auto edges = edgeList;
+
+    // Step 1: Build the adjacency list from the edges
+    std::unordered_map<int, std::vector<int>> adjList {buildAdjacencyList()};
+
+    for (const auto& [e, as] : adjList)
     {
-        for (const auto e : es)
+        std::cout << e << " : ";
+        for (const auto a: as)
         {
-            std::cout<< e << " ";
-            if (!visited.at(e - 1))
+            std::cout << a << " ";
+
+        }
+        std::cout <<"\n";
+    }
+
+    // Step 2: Perform DFS starting from node 1 (or any node)
+    std::unordered_set<int> visited;
+    std::cout << "DFS starting from node 1: ";
+
+    auto node = 1;
+
+    // Create a stack to hold the DFS nodes
+    std::stack<int> s;
+    s.push(node);
+
+    while (!s.empty())
+    {
+        int current = s.top();
+        s.pop();
+        
+        if (visited.find(current) == visited.end())
+        {
+            std::cout << current << " ";  // Process the current node
+            visited.insert(current);      // Mark the node as visited
+        }
+
+        // Explore neighbors
+        for (int neighbor : adjList.at(current))
+        {
+            if (visited.find(neighbor) == visited.end())
             {
-                dfs(e);
+                s.push(neighbor);  // Push unvisited neighbors onto the stack
             }
         }
     }
-
-//     #include <iostream>
-// #include <vector>
-// #include <unordered_map>
-// #include <unordered_set>
-// #include <stack>
-
-// void dfs(int node, const std::unordered_map<int, std::vector<int>>& adjList, std::unordered_set<int>& visited) {
-//     // Create a stack to hold the DFS nodes
-//     std::stack<int> s;
-//     s.push(node);
-    
-//     while (!s.empty()) {
-//         int current = s.top();
-//         s.pop();
-        
-//         if (visited.find(current) == visited.end()) {
-//             std::cout << current << " ";  // Process the current node
-//             visited.insert(current);      // Mark the node as visited
-//         }
-
-//         // Explore neighbors
-//         for (int neighbor : adjList.at(current)) {
-//             if (visited.find(neighbor) == visited.end()) {
-//                 s.push(neighbor);  // Push unvisited neighbors onto the stack
-//             }
-//         }
-//     }
-// }
-
-// int main() {
-//     std::vector<std::pair<int, int>> edges = {
-//         {1, 2}, {1, 3}, {1, 4}, {2, 3}, {2, 4},
-//         {2, 5}, {3, 4}, {3, 5}, {4, 5}
-//     };
-
-//     // Step 1: Build the adjacency list from the edges
-//     std::unordered_map<int, std::vector<int>> adjList;
-//     for (const auto& edge : edges) {
-//         adjList[edge.first].push_back(edge.second);
-//         adjList[edge.second].push_back(edge.first);  // Since it's an undirected graph
-//     }
-
-//     // Step 2: Perform DFS starting from node 1 (or any node)
-//     std::unordered_set<int> visited;
-//     std::cout << "DFS starting from node 1: ";
-//     dfs(1, adjList, visited);
-
-//     std::cout << std::endl;
-
-//     return 0;
-// }
-
 }
+
+// the same as the stack solution
+// recursive is simple way to leave the state for syscall and real stack
+// this version is for a small graph, otherwise we get the stackoverflow due to too many recursion 
+void dfsRecursive(int node, std::unordered_map<int, std::vector<int>>& adjList, std::unordered_set<int>& visited) {
+    // Mark the current node as visited and process it
+    visited.insert(node);
+    std::cout << node << " ";
+
+    // Explore all neighbors of the current node
+    for (int neighbor : adjList[node]) {
+        // If the neighbor hasn't been visited, visit it recursively
+        if (visited.find(neighbor) == visited.end()) {
+            dfsRecursive(neighbor, adjList, visited);
+        }
+    }
+}
+
 
 int main()
 {
-    dfs(1);
+    dfs();
     return 0;
 }
