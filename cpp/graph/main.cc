@@ -193,9 +193,11 @@ void bfs_helper_for_countIsland(std::vector<std::vector<char>>& grid, int x, int
     const static std::vector directions = {-1, 0 , 1, 0, -1};
     std::queue<std::pair<int,int>> q;
     q.push({x,y});
+    grid.at(x).at(y) = '0';
 
     const auto noRow = grid.size();
     const auto noCol = grid.front().size();
+
 
     while(!q.empty())
     {
@@ -220,6 +222,40 @@ void bfs_helper_for_countIsland(std::vector<std::vector<char>>& grid, int x, int
     }
 }
 
+void dfs_helper_for_countIsland(std::vector<std::vector<char>>& grid, int x, int y)
+{
+    const static std::vector directions = {-1, 0 , 1, 0, -1};
+    std::stack<std::pair<int,int>> s;
+    s.push({x,y});
+    grid.at(x).at(y) = '0';
+    
+    const auto noRow = grid.size();
+    const auto noCol = grid.front().size();
+
+    while(!s.empty())
+    {
+        auto [rowIndex, colIndex] = s.top();
+        s.pop();
+
+        // 4 is for direction
+        for (size_t i = 0; i < 4; i++)
+        {
+            auto newRowIndex = rowIndex + directions[i];
+            auto newColIndex = colIndex + directions[i+1];
+
+            // check if new cell is within the grid
+            if ((newRowIndex >= 0 && newRowIndex < noRow) &&
+                (newColIndex >= 0 && newColIndex < noCol) &&
+                (grid[newRowIndex][newColIndex] == '1'))
+            {
+                grid[newRowIndex][newColIndex] = '0'; // visited cell
+                s.push({newRowIndex, newColIndex}); // dequeue cell
+            }
+        }
+    }
+}
+
+
 // count the connected component
 int countIsland()
 {
@@ -243,7 +279,7 @@ int countIsland()
             if (grid[r][c] == '1')
             {
                 noIsland++;
-                bfs_helper_for_countIsland(grid, r, c);
+                dfs_helper_for_countIsland(grid, r, c);
             }
         }
         
