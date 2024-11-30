@@ -7,7 +7,7 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
-#include <vector>
+#include <ranges>
 
 // basis
 // 
@@ -255,7 +255,6 @@ void dfs_helper_for_countIsland(std::vector<std::vector<char>>& grid, int x, int
     }
 }
 
-
 // count the connected component
 int countIsland()
 {
@@ -288,8 +287,126 @@ int countIsland()
     return noIsland;
 }
 
+// auto res = find_path_by_bfs(1,5);
+// for (int i : res | std::views::reverse)
+// {
+//     std::cout << i << ' ';
+// }
+std::vector<int> find_path_by_bfs(int start, int end)
+{
+    // Step 1: Build the adjacency list from the edges
+    std::unordered_map<int, std::vector<int>> adjList {buildAdjacencyList(edgeList)};
+
+    // Step 2: the queue for BFS
+    std::queue<int> q;
+    std::unordered_set<int> visited;
+    std::unordered_map<int, int> parent; // child -> parent
+
+    // Step 3: Start from "start"
+    visited.insert(start);
+    q.push(start);
+
+    while(!q.empty())
+    {
+        auto current = q.front();
+        q.pop();
+
+
+        // Step 4: enqueue children of current node
+        for (const auto& neighbor : adjList.at(current))
+        {
+            if (visited.find(neighbor) == visited.end())
+            {
+                visited.insert(neighbor);
+                q.push(neighbor);
+                parent[neighbor] = current;
+
+                if (neighbor == end)
+                {
+                    std::vector<int> path;
+                    for(auto current = end; current != start; current = parent[current])
+                    {
+                        path.push_back(current);
+                    }
+                    path.push_back(start);
+
+                    return path;
+                }
+            }
+
+        }
+    }
+    return {};
+}
+
+// auto res = find_path_by_dfs(1,5);
+// for (int i : res | std::views::reverse)
+// {
+//     std::cout << i << ' ';
+// }
+std::vector<int> find_path_by_dfs(int start, int end)
+{
+    // Step 1: Build the adjacency list from the edges
+    std::unordered_map<int, std::vector<int>> adjList {buildAdjacencyList(edgeList)};
+
+    // Step 2: the queue for DFS
+    std::stack<int> s;
+    std::unordered_set<int> visited;
+    std::unordered_map<int, int> parent; // child -> parent
+
+    // Step 3: Start from "start"
+    visited.insert(start);
+    s.push(start);
+
+    while(!s.empty())
+    {
+        auto current = s.top();
+        s.pop();
+
+        // Step 4: enqueue children of current node
+        for (const auto& neighbor : adjList.at(current))
+        {
+            if (visited.find(neighbor) == visited.end())
+            {
+                visited.insert(neighbor);
+                s.push(neighbor);
+                parent[neighbor] = current;
+
+                if (neighbor == end)
+                {
+                    std::vector<int> path;
+                    for(auto current = end; current != start; current = parent[current])
+                    {
+                        path.push_back(current);
+                    }
+                    path.push_back(start);
+
+                    return path;
+                }
+            }
+
+        }
+    }
+    return {};
+}
+
+// bfs for unweighted graph because it is simply
+// all edges has the same weight, the height is the depth
+std::vector<int> find_shortest_path_by_bfs(int start, int end)
+{
+    if (start == end) return {start};
+
+    // reuse find_path_by_bfs because the first found path as known as the shortest path
+    return find_path_by_bfs(start, end);
+}
+
 int main()
 {
-    std::cout<<"count island "<<countIsland();
+    // std::cout<<"count island "<< countIsland();
+    auto res = find_path_by_dfs(1,5);
+    for (int i : res | std::views::reverse)
+    {
+        std::cout << i << ' ';
+    }
     return 0;
 }
