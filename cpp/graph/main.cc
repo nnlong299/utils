@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <iostream>
 #include <stack>
+#include <queue>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -35,10 +36,12 @@ const static std::vector<std::pair<int,int>> edgeList
     {4, 5},
 };
 
-auto buildAdjacencyList() -> std::unordered_map<int, std::vector<int>>
+// because the edges are sorted
+// so we borrow that to use unordered_map to have access complexity is O1
+auto buildAdjacencyList(const std::vector<std::pair<int,int>>& edges) -> std::unordered_map<int, std::vector<int>>
 {
     std::unordered_map<int, std::vector<int>> adjList;
-    for (const auto& edge : edgeList)
+    for (const auto& edge : edges)
     {
         adjList[edge.first].push_back(edge.second);
         adjList[edge.second].push_back(edge.first);  // Since it's an undirected graph
@@ -87,7 +90,7 @@ void dfs()
     auto edges = edgeList;
 
     // Step 1: Build the adjacency list from the edges
-    std::unordered_map<int, std::vector<int>> adjList {buildAdjacencyList()};
+    std::unordered_map<int, std::vector<int>> adjList {buildAdjacencyList(edges)};
 
     for (const auto& [e, as] : adjList)
     {
@@ -149,9 +152,108 @@ void dfsRecursive(int node, std::unordered_map<int, std::vector<int>>& adjList, 
     }
 }
 
+void bfs(int start)
+{
+    std::unordered_set<int> visited;
+
+    // Step 1: Build the adjacency list from the edges
+    std::unordered_map<int, std::vector<int>> adjList {buildAdjacencyList(edgeList)};
+
+    // Step 2: the queue for BFS
+    std::queue<int> q;
+
+    // Step 3: Start from "start"
+    visited.insert(start);
+    q.push(start);
+
+    while(!q.empty())
+    {
+        auto current = q.front();
+        q.pop();
+
+        // Step 4: process current node
+        std::cout<< current <<" ";
+
+        // Step 5: enqueue children of current node
+        for (const auto& node : adjList.at(current))
+        {
+            if (visited.find(node) == visited.end())
+            {
+                visited.insert(node);
+                q.push(node);
+            }
+        }
+    }
+
+}
+
+void bfs_helper_for_countIsland(std::vector<std::vector<char>>& grid, int x, int y)
+{
+    // 4 directions to spread out
+    const static std::vector directions = {-1, 0 , 1, 0, -1};
+    std::queue<std::pair<int,int>> q;
+    q.push({x,y});
+
+    const auto noRow = grid.size();
+    const auto noCol = grid.front().size();
+
+    while(!q.empty())
+    {
+        auto [rowIndex, colIndex]  = q.front();
+        q.pop();
+
+        // 4 is for direction
+        for (size_t i = 0; i < 4; i++)
+        {
+            auto newRowIndex = rowIndex + directions[i];
+            auto newColIndex = colIndex + directions[i+1];
+
+            // check if new cell is within the grid
+            if ((newRowIndex >= 0 && newRowIndex < noRow) &&
+                (newColIndex >= 0 && newColIndex < noCol) &&
+                (grid[newRowIndex][newColIndex] == '1'))
+            {
+                grid[newRowIndex][newColIndex] = '0'; // visited cell
+                q.push({newRowIndex, newColIndex}); // dequeue cell
+            }
+        }
+    }
+}
+
+// count the connected component
+int countIsland()
+{
+    std::vector<std::vector<char>> grid =
+    {
+        {'1', '1', '1', '1', '0'},
+        {'1', '1', '0', '1', '0'},
+        {'1', '1', '0', '0', '1'},
+        {'0', '0', '0', '1', '0'}
+    };
+
+    int noRow = grid.size();
+    int noCol = grid.front().size();
+
+    int noIsland = 0;
+
+    for (size_t r = 0; r < noRow; r++)
+    {
+        for (size_t c = 0; c < noCol; c++)
+        {
+            if (grid[r][c] == '1')
+            {
+                noIsland++;
+                bfs_helper_for_countIsland(grid, r, c);
+            }
+        }
+        
+    }
+
+    return noIsland;
+}
 
 int main()
 {
-    dfs();
+    std::cout<<"count island "<<countIsland();
     return 0;
 }
