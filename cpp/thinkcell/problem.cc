@@ -76,14 +76,17 @@ void testIntervalMap() {
     map.assign(3, 5, 'b');
     map.print(); // [-2147483648:a][3:b][5:a]
 
-    map.assign(2, 3, 'c');
+    map.assign(7, 9, 'c');
     map.print(); // [-2147483648:a][2:c][3:b][5:a]
 
-    map.assign(2, 3, 'd');
-    map.print(); // [-2147483648:a][2:d][3:b][5:a]
+    std::cout<<map[3]<<"\n";
+    std::cout<<map[5]<<"\n";
+    std::cout<<map[6]<<"\n";
 
-    map.assign(2, 4, 'e');
+    map.assign(4, 7, 'e');
     map.print(); // [-2147483648:a][2:e][4:b][5:a]
+    std::cout<<map[6]<<"\n";
+
 }
 
 int main() {
