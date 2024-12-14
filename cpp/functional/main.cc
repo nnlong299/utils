@@ -7,10 +7,28 @@
 #include <functional>
 #include <iostream>
 #include <iomanip>
- 
+
+struct ServiceHandler
+{
+    void registerService(std::function<void(int i)> x )
+    {
+        callback_ = x;
+    }
+
+    void execute()
+    {
+        if (callback_)
+        {
+            callback_(1);
+        }
+    }
+    std::function<void(int i)> callback_;
+};
+
 struct Foo
 {
     explicit Foo(int num) : num_(num) {}
+    explicit Foo(ServiceHandler srv) : srv_(srv) {}
     void print_add1(int i) const 
     {
         std::cout << num_ + i << '\n'; 
@@ -22,7 +40,22 @@ struct Foo
         std::cout << "j addr "<< &j << " "<< ++j << '\n'; 
         num_ = i;
     }
+
+    void registerCallback()
+    {
+        std::cout << "being called object addr "<< &(*this) << '\n';
+        // should never inject another object into class to do register callback
+        // otherwise, you got "error: ISO C++ forbids taking the address of an unqualified or parenthesized non-static member function to form a pointer to member function.  Say ‘&Foo::print_add1’ [-fpermissive]"
+        // never use -fpermissive, the fuck
+    
+        srv_.registerService(std::bind(&print_add1, this, std::placeholders::_1));
+        // srv_.registerService([this](int i)
+        // {
+        //     print_add1(1);
+        // });
+    }
     int num_;
+    ServiceHandler srv_;
 };
  
 void print_num(int i)
@@ -68,7 +101,7 @@ int main()
     std::cout << std::quoted("out")<< " i addr " << &i << " "<<  i << '\n'; 
     std::cout << std::quoted("out")<< " j addr " << &j << " "<<  j << '\n'; 
 
-    auto f_add_display2a = std::bind(&Foo::print_add2, std::ref(fooa), i, j);
+    auto f_add_display2a = std::bind(&Foo::print_add2, &fooa, i, j);
     f_add_display2a();
     std::cout << " wtf num_ after called = " << fooa.num_ << '\n'; 
 
