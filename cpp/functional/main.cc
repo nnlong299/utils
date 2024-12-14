@@ -17,8 +17,10 @@ struct Foo
     }
     void print_add2(int i, int& j) 
     {
-        std::cout << &i << " "<< num_ + i << '\n'; 
-        std::cout << &j << " "<< ++j << '\n'; 
+        std::cout << "being called object addr "<< &(*this) << '\n'; 
+        std::cout << "i addr "<< &i << " "<< num_ + i << '\n'; 
+        std::cout << "j addr "<< &j << " "<< ++j << '\n'; 
+        num_ = i;
     }
     int num_;
 };
@@ -52,16 +54,26 @@ int main()
  
     // // store a call to a member function
     // std::function<void(const Foo&, int)> f_add_display = &Foo::print_add1;
-    const Foo foo(314159);
     // f_add_display(foo, 1);
 
     // store the result of a call to std::bind
     int i = 2;
     int j = 3;
-    std::cout << std::quoted("out")<< " " << &i << " "<<  i << '\n'; 
-    std::cout << std::quoted("out")<< " " << &j << " "<<  j << '\n'; 
-    auto f_add_display2 = std::bind(&Foo::print_add2, foo, i, std::ref(j));
-    f_add_display2();
+    Foo fooa(0);
+    Foo foob(0);
+
+    std::cout << std::quoted("out")<< " fooa addr " << &fooa << '\n'; 
+    std::cout << std::quoted("out")<< " foob addr " << &foob << '\n'; 
+    std::cout << std::quoted("out")<< " print_add2 addr " << &Foo::print_add2 << '\n'; 
+    std::cout << std::quoted("out")<< " i addr " << &i << " "<<  i << '\n'; 
+    std::cout << std::quoted("out")<< " j addr " << &j << " "<<  j << '\n'; 
+
+    auto f_add_display2a = std::bind(&Foo::print_add2, std::ref(fooa), i, j);
+    f_add_display2a();
+    std::cout << " wtf num_ after called = " << fooa.num_ << '\n'; 
+
+    auto f_add_display2b = std::bind(&Foo::print_add2, foob, i, std::ref(j));
+    f_add_display2b();
 
     // this will implicitly convert 'int' to 'const Foo&'
     // bad practice always
