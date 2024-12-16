@@ -1,10 +1,3 @@
-
-#include <iostream>
-#include <thread>
-#include <iostream>
-#include <thread>
-#include <future>
-#include <exception>
 #include "utils.h"
 
 class Worker {
@@ -308,7 +301,6 @@ int main()
         Utils::time_elapsed(doSum, "2 thread", 2);
         Utils::time_elapsed(doSum, "3 thread", 3);
         Utils::time_elapsed(doSum, "4 thread", 4);
-
     }
     MAGENTA("task9::shared_data::end");
 

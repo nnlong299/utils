@@ -1,21 +1,20 @@
-#include <array>
 #include <algorithm>
+#include <array>
 #include <cstdint>
 #include <exception>
+#include <functional>
 #include <future>
 #include <iostream>
 #include <map>
 #include <mutex>
+#include <numeric>
 #include <set>
 #include <sstream>
-#include <numeric>
 #include <string>
-#include <thread>
 #include <thread>
 #include <type_traits>
 #include <utility>
 #include <vector>
-#include <functional>
 
 #include "definitions.h"
 
