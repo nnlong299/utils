@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <array>
+#include <condition_variable>
 #include <cstdint>
 #include <exception>
 #include <functional>
@@ -8,9 +9,11 @@
 #include <map>
 #include <mutex>
 #include <numeric>
+#include <queue>
 #include <set>
 #include <sstream>
 #include <string>
+#include <shared_mutex>
 #include <thread>
 #include <type_traits>
 #include <utility>
