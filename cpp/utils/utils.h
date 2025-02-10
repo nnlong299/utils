@@ -125,6 +125,12 @@ namespace Utils
         std::ostringstream m_stream;
     };
 
+    template<typename ... Args>
+    void printAuto(Args... args)
+    {
+        std::cout << StringCreator::to_string(args...)        // text concat-ed
+    }
+
     // print text with color
     // default end = '\n'
     template<typename ... Args>
