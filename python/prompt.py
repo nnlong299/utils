@@ -2,6 +2,9 @@ import sys
 import readline
 import os
 import subprocess
+import json
+import re
+import time
 
 HISTORY_FILE = os.path.expanduser("~/.custom_terminal_history")
 command_history = []
@@ -12,6 +15,51 @@ if os.path.exists(HISTORY_FILE):
         command_history = [line.strip() for line in f if line.strip()]
         for command in command_history:
             readline.add_history(command)
+
+# Enable tab completion
+def completer(text, state):
+    commands = ["exit", "get", "help", "history", "pull", "push", "quit", "set", "exec", "test"]
+    targets = {"ABC", "XYZ", "123"}  # Example targets
+    buffer = readline.get_line_buffer()
+    words = buffer.split()
+    
+    if not words:
+        options = commands
+    elif len(words) == 1 and not buffer.endswith(" "):
+        options = [cmd for cmd in commands if cmd.startswith(text)]
+    elif words[0] in {"get", "set", "push", "pull"} and (len(words) == 1 or (len(words) == 2 and buffer.endswith(" "))):
+        options = [t for t in targets if t.startswith(text)]
+    else:
+        options = []
+    
+    return options[state] if state < len(options) else None
+
+readline.set_completer(completer)
+readline.parse_and_bind("tab: complete")
+
+def yellow(text):
+    return f"\033[33m{text}\033[0m"
+
+def green(text):
+    return f"\033[32m{text}\033[0m"
+
+def red(text):
+    return f"\033[31m{text}\033[0m"
+
+def orange(text):
+    return f"\033[38;5;214m{text}\033[0m"
+
+def blue(text):
+    return f"\033[34m{text}\033[0m"
+
+def bold_yellow(text):
+    return f"\033[1;33m{text}\033[0m"
+
+def bold_green(text):
+    return f"\033[1;32m{text}\033[0m"
+
+def bold_red(text):
+    return f"\033[1;31m{text}\033[0m"
 
 def show_help():
     commands = {
@@ -24,30 +72,46 @@ def show_help():
         "quit": "Exit the terminal",
         "set": "Set a value. Usage: set <TARGET> <VALUE>",
         "exec": "Execute a Linux command. Usage: exec <COMMAND>",
+        "test": "Run automated tests from a JSON file. Usage: test <FILE>",
     }
     print("Available commands:")
     for cmd in sorted(commands):
         print(f"  {cmd}: {commands[cmd]}")
 
-def complete(text, state):
-    commands = ["exit", "quit", "help", "push", "pull", "get", "set", "history", "exec"]
-    targets = ["ABC", "XYZ", "123"]
-    buffer = readline.get_line_buffer().strip()
-    words = buffer.split()
-    
-    if not buffer:  # Suggest commands if buffer is empty
-        options = commands
-    elif len(words) == 1:  # Suggest commands if only one word is typed
-        options = [cmd for cmd in commands if cmd.startswith(text)]
-    elif len(words) == 2 and words[0] in {"push", "pull", "get", "set"}:  # Suggest targets
-        options = [tgt for tgt in targets if tgt.startswith(text)]
-    else:
-        options = []
-    
-    return options[state] if state < len(options) else None
+def run_tests(file_path):
+    try:
+        with open(file_path, "r") as f:
+            tests = json.load(f)
+    except Exception as e:
+        print(red(f"Error loading test file: {e}"))
+        return
 
-readline.set_completer(complete)
-readline.parse_and_bind("tab: complete")  # Enable tab completion
+    overall_result = True
+    for test in tests:
+        command = test.get("command", "")
+        pattern = test.get("pattern", "")
+        stop_if_false = test.get("stopIfFailure", True)
+        no_retries = test.get("noRetries", 1)
+        print('-'*50)
+        print(f"{yellow('Executing')}: {command}")
+        for attempt in range(no_retries):
+            result = subprocess.run(command, shell=True, text=True, capture_output=True)
+            output = result.stdout.strip() + "\n" + result.stderr.strip()
+            print(f"{blue('Output')}:\n{output.strip()}")
+
+            if re.search(pattern, output, re.MULTILINE):
+                print(green(f"Passed: Pattern '{pattern}' found in output"))
+                break
+            else:
+                print(red(f"Failed: Pattern '{pattern}' not found in output (Attempt {attempt + 1}/{no_retries})"))
+                if attempt + 1 < no_retries:
+                    time.sleep(1)
+        else:
+            overall_result = False
+            if stop_if_false:
+                break
+
+    print(bold_green("All tests passed") if overall_result else bold_red("Some tests failed"))
 
 def process_command(command):
     parts = command.split()
@@ -89,37 +153,29 @@ def process_command(command):
                 print(cmd)
         case "history" if args and args[0] == "clear":
             command_history.clear()
-            open(HISTORY_FILE, "w").close()  # Clear history file on disk
+            open(HISTORY_FILE, "w").close()
             print("History cleared.")
         case "exec" if args:
             try:
-                result = subprocess.run(" ".join(args), shell=True, executable="/bin/bash", text=True)
-                if result.returncode:
-                    print(f"Exit Code: {result.returncode}")
+                result = subprocess.run(" ".join(args), shell=True, executable="/bin/bash", text=True, capture_output=True)
+                output = result.stdout + result.stderr
+                print(output.strip())
+                print(f"Exit Code: {result.returncode}")
             except Exception as e:
                 print(f"Error executing command: {e}")
+        case "test" if args:
+            run_tests(args[0])
         case _:
             print("Unknown or incorrect command usage.")
-
-def get_input():
-    try:
-        command = input("$ ")  # Prompt user for input
-        if command.strip():
-            if not command_history or command_history[-1] != command:  # Avoid consecutive duplicates
-                command_history.append(command)
-        return command
-    except KeyboardInterrupt:
-        print("\nUse 'exit' or 'quit' to leave.")
-        return ""
-    except EOFError:
-        print("\nExiting terminal...")
-        return "exit"
 
 def main():
     try:
         while True:
-            command = get_input()
-            if command.lower() in {"exit", "quit"}:  # Allow user to exit
+            command = input("$ ")
+            if command.strip():
+                if not command_history or command_history[-1] != command:
+                    command_history.append(command)
+            if command.lower() in {"exit", "quit"}:
                 print("Exiting terminal...")
                 break
             elif command.lower() == "help":
@@ -127,7 +183,6 @@ def main():
             else:
                 process_command(command)
     finally:
-        # Save command history when exiting
         with open(HISTORY_FILE, "w") as f:
             f.write("\n".join(command_history) + "\n")
 

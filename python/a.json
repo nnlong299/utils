@@ -1,0 +1,16 @@
+[
+    {
+        "command": "ls",
+        "pattern": "a.*on"
+    },
+    {
+        "command": "ls",
+        "pattern": "python",
+        "stopIfFailure": false,
+        "noRetries": 5
+    },
+    {
+        "command": "ls",
+        "pattern": "abc"
+    }
+]
