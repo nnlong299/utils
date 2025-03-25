@@ -20,6 +20,8 @@
 #include <utility>
 #include <vector>
 
+// import std;
+
 #include "definitions.h"
 
 namespace Utils
@@ -128,7 +130,7 @@ namespace Utils
     template<typename ... Args>
     void printAuto(Args... args)
     {
-        std::cout << StringCreator::to_string(args...)        // text concat-ed
+        std::cout << StringCreator::to_string(args...);        // text concat-ed
     }
 
     // print text with color
@@ -163,3 +165,10 @@ namespace Utils
 #define MAGENTA(...)    Utils::print(Definition::Color::Magenta,    __VA_ARGS__ )
 #define CYAN(...)       Utils::print(Definition::Color::Cyan,       __VA_ARGS__ )
 #define WHITE(...)      Utils::print(Definition::Color::White,      __VA_ARGS__ )
+
+// TODO:
+// std::flat_map
+// std::multi_map
+// std::mdspan
+// std::span
+// https://www.youtube.com/watch?v=Cttb8vMuq-Y&list=PLHTh1InhhwT7gQEuYznhhvAYTel0qzl72&index=3
