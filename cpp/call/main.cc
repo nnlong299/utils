@@ -22,21 +22,24 @@ MatrixAction checkPrioMatrix(Champion current, Champion next) noexcept
     };
 
     auto it = prioMatrix.find(current);
-    if (it != prioMatrix.end())
+    if (it == prioMatrix.end())
     {
-        try
-        {
-            return it->second.at(Utils::to_underlying(next));
-        }
-        catch (const std::out_of_range& ex)
-        {
-            std::cout << ex.what() << '\n';
-        }
+        return MatrixAction::NODEF;
     }
 
-    return MatrixAction::NODEF;
+    try
+    {
+        return it->second.at(Utils::to_underlying(next));
+    }
+    catch (const std::out_of_range& ex)
+    {
+        std::cout << ex.what() << '\n';
+    }
+    catch (const std::runtime_error& ex)
+    {
+        std::cout << ex.what() << '\n';
+    }
 }
-
 
 int main()
 {
